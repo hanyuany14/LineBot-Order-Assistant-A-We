@@ -1,4 +1,5 @@
 import os
+from urllib.parse import quote as urlquote
 from dotenv import load_dotenv
 
 load_dotenv("dotenv/.env.local")
@@ -34,9 +35,7 @@ class LanchainConfigs:
     """The configuration for SQL agent."""
 
     SQL_AGENT_MAX_ITERATION = 6
-    SQL_AGENT_MAX_EXECUTION_TIME = (
-        20.0  # we limit the agent only run for 20 seconds.
-    )
+    SQL_AGENT_MAX_EXECUTION_TIME = 20.0  # we limit the agent only run for 20 seconds.
     SQL_AGENT_EARLY_STOPPING_METHOD = "force"  # if the agent is not able to generate a query, it will stop but will still return full msgs for user.
     SQL_AGENT_TYPE = "openai-tools"
 
@@ -60,3 +59,16 @@ class GroqConfigs:
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
     MODEL_NAME_MIXTRAL = "mixtral-8x7b-32768"
     MODEL_NAME_LLAMA_70B = "llama3-70b-8192"
+
+
+class PostgreConfigs:
+    """The configuration for Postgre."""
+
+    DB_INFO = {
+        "HOST": os.environ.get("POSTGRES_HOST"),
+        "PORT": os.environ.get("POSTGRES_PORT"),
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "USER": os.environ.get("POSTGRES_USER"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+    }
+    DB_ENGINE_CONNECT_STR = f"postgresql+psycopg2://{DB_INFO['USER']}:{urlquote(str(DB_INFO['PASSWORD']))}@{DB_INFO['HOST']}:{DB_INFO['PORT']}/{DB_INFO['NAME']}"

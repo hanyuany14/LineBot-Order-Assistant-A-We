@@ -5,10 +5,12 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_groq import ChatGroq
 from langsmith import Client
 from openai import OpenAI
+from langchain_community.utilities import SQLDatabase
 
 from configs import OpenAIConfigs
 from configs import GroqConfigs
 from configs import LangsmithConfigs
+from configs import PostgreConfigs
 
 
 class LLMUtils:
@@ -79,3 +81,11 @@ class EmbeddingUtils:
     """The utility class for Embedding."""
 
     OPENAI_EMBEDDING = OpenAIEmbeddings(api_key=OpenAIConfigs.OPENAI_API_KEY)  # type: ignore
+
+
+class PostgreUtils:
+
+    PG_DB = SQLDatabase.from_uri(
+        database_uri=PostgreConfigs.DB_ENGINE_CONNECT_STR,
+        include_tables=["inventory", "order"],
+    )
