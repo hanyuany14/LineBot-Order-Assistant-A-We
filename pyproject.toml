@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "smart-docmodifier"
+version = "0.1.0"
+description = "\"Smart DocModifier is an AI-powered document editing tool designed to enhance and automate the process of modifying documents. It utilizes advanced AI algorithms, including capabilities from ChatGPT, to intelligently alter text, tables, and images within a specified range. This tool is especially useful for professionals and organizations looking to streamline document workflows. It supports direct export to Word format, enabling users to easily apply and further adjust the modifications. Smart DocModifier aims to simplify document management tasks, improve accuracy, and save time."
+authors = ["StephenYehFN <stephenyeh.futurenest@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+flake8 = "^7.0.0"
+pytest = "^8.2.1"
+ruff = "^0.4.6"
+autopep8 = "^2.1.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
