@@ -1,0 +1,19 @@
+{
+   "python.formatting.provider": "autopep8",
+   "editor.formatOnSave": true,
+   "editor.tabSize": 3,
+   "files.trimTrailingWhitespace": true,
+   "python.analysis.typeCheckingMode": "basic",
+   "black-formatter.args": [
+       "--line-length=100"
+   ],
+   "[python]": {
+       "editor.tabSize": 4,
+       "editor.defaultFormatter": "ms-python.black-formatter",
+       "editor.formatOnType": true
+   },
+   "[toml]": {
+       "editor.tabSize": 2,
+       "editor.formatOnType": true
+   }
+}
