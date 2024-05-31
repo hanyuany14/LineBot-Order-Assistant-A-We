@@ -5,7 +5,7 @@
    "files.trimTrailingWhitespace": true,
    "python.analysis.typeCheckingMode": "basic",
    "black-formatter.args": [
-       "--line-length=80"
+       "--line-length=100"
    ],
    "[python]": {
        "editor.tabSize": 4,

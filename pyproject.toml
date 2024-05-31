@@ -7,6 +7,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+openai = "^1.30.5"
+python-dotenv = "^1.0.1"
+langchain-openai = "^0.1.8"
+langchain-groq = "^0.1.4"
+pandas = "^2.2.2"
+rich = "^13.7.1"
+pillow = "^10.3.0"
+matplotlib = "^3.9.0"
+langchain-community = "^0.2.1"
+psycopg2-binary = "^2.9.9"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
