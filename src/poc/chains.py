@@ -51,23 +51,26 @@ class ChainsManager:
             product_name: str = Field(description="product name to be ordered")
             quantity: int = Field(description="quantity of the item to be ordered")
 
-        parser = JsonOutputParser(pydantic_object=Order)
+        json_parser = JsonOutputParser(pydantic_object=Order)
 
-        prompt = PromptTemplate(
+        convert_to_json_prompt = PromptTemplate(
             name="convert_to_json_data_prompt",
             template="Transfer the order message into json format.\n{format_instructions}\n{query}\n",
             input_variables=["query"],
-            partial_variables={"format_instructions": parser.get_format_instructions()},
+            partial_variables={"format_instructions": json_parser.get_format_instructions()},
         )
-        chain = prompt | self.covert_to_json_model | parser
+
+        chain = convert_to_json_prompt | self.covert_to_json_model | json_parser
         response = chain.invoke({"query": user_msg})
+
         print(f"response: {response}")
         return response
 
     def get_checking_query(self, json_data: dict) -> str:
         """將 json 數據轉換為查詢字符串，查詢相關的訂單狀態"""
 
-        _postgres_prompt = """You are a PostgreSQL expert. Given an input order data, first create a syntactically correct PostgreSQL query to run, then look at the results of the query and return the inventory quantity of the product mentioned in the order data.
+        _postgres_prompt = """
+        You are a PostgreSQL expert. Given an input order data, first create a syntactically correct PostgreSQL query to run, then look at the results of the query and return the inventory quantity of the product mentioned in the order data.
         Ensure that the condition is_delete = False is included.
         Unless the user specifies in the order data a specific number of examples to obtain, query for at most {top_k} results using the LIMIT clause as per PostgreSQL. You can order the results to return the most informative data in the database.
         Never query for all columns from a table. You must query only the columns that are needed to answer the query. Wrap each column name in double quotes (") to denote them as delimited identifiers.
@@ -94,7 +97,6 @@ class ChainsManager:
         write_query = create_sql_query_chain(
             llm=self.check_sql_query_model, db=self.db, prompt=checking_query_prompt_template, k=10
         )
-
         chain = checking_query_prompt_template | write_query | StrOutputParser()
         response = chain.invoke(
             {
@@ -109,6 +111,9 @@ class ChainsManager:
 
     def check_inventory_status_in_db(self, check_query: str) -> str:
         """查詢查詢庫存的 SQL 語法，並回傳訂單是否可以成功訂購"""
+
+        # TODO: 要加入 json data 才可以比較
+        # TODO: 生成 json data 那邊要確認每一個商品內容是包含在 menu 裡面的
 
         check_prompt = PromptTemplate.from_template(
             """Given the following SQL query and SQL result, determine if each product in the order can be fulfilled based on the inventory quantity.
@@ -131,8 +136,8 @@ class ChainsManager:
             | self.check_inventory_model
             | StrOutputParser()
         )
-
         check_result = chain.invoke({"query": check_query})
+
         print(f"check_result: {check_result}")
         return check_result
 
