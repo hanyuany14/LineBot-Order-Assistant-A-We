@@ -6,7 +6,7 @@ authors = ["StephenYehFN <stephenyeh.futurenest@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "3.11.8"
 openai = "^1.30.5"
 python-dotenv = "^1.0.1"
 langchain-openai = "^0.1.8"
