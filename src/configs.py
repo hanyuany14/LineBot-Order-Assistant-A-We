@@ -72,3 +72,12 @@ class PostgreConfigs:
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
     }
     DB_ENGINE_CONNECT_STR = f"postgresql+psycopg2://{DB_INFO['USER']}:{urlquote(str(DB_INFO['PASSWORD']))}@{DB_INFO['HOST']}:{DB_INFO['PORT']}/{DB_INFO['NAME']}"
+
+
+class LineBotConfigs:
+    """The configuration for Line bot."""
+
+    line_channel_id = os.environ.get("LINE_CHANNEL_ID")
+    line_channel_secret = os.environ.get("LINE_CHANNEL_SECRET")
+    line_channel_access_token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+    line_user_id = os.environ.get("LINE_USER_ID")
