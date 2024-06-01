@@ -6,3 +6,5 @@ if __name__ == "__main__":
     response = chains_manager.main(user_msg)
 
     print(f"Finsihed! response: {response}")
+
+    print("Done!")
