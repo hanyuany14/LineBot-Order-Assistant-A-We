@@ -2,7 +2,8 @@ import os
 from urllib.parse import quote as urlquote
 from dotenv import load_dotenv
 
-load_dotenv("dotenv/.env.local")
+if not os.getenv("IS_HEROKU", False):
+    load_dotenv("dotenv/.env.local")
 
 
 class OpenAIConfigs:

@@ -24,6 +24,9 @@ def linebot():
         handler.handle(body, signature)  # 綁定訊息回傳的相關資訊
         tk = json_data["events"][0]["replyToken"]  # 取得回傳訊息的 Token
         type = json_data["events"][0]["message"]["type"]  # 取得 LINe 收到的訊息類型
+
+        print(f"json_data: {json_data}")
+
         if type == "text":
             msg = json_data["events"][0]["message"]["text"]  # 取得 LINE 收到的文字訊息
             print(msg)  # 印出內容
