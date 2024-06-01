@@ -71,10 +71,10 @@ def select_llm_model(llm_model: str):
             return LLMUtils.GPT35_LLM_MODEL
 
 
-class LangsmithUtils:
-    """The utility class for Langsmith."""
+# class LangsmithUtils:
+#     """The utility class for Langsmith."""
 
-    LANGSMITH_CLIENT = Client(api_key=LangsmithConfigs.LANGSMITH_API_KEY)
+#     LANGSMITH_CLIENT = Client(api_key=LangsmithConfigs.LANGSMITH_API_KEY)
 
 
 class EmbeddingUtils:
