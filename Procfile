@@ -1,1 +1,1 @@
-web: gunicorn heroku_app:app
+web: poetry run gunicorn heroku_app:app
