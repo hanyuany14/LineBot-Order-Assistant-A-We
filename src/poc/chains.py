@@ -24,8 +24,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
-from utils import select_llm_model
-from utils import PostgreUtils
+from src.utils import select_llm_model
+from src.utils import PostgreUtils
 
 
 class ChainsManager:
