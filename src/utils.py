@@ -7,10 +7,10 @@ from langsmith import Client
 from openai import OpenAI
 from langchain_community.utilities import SQLDatabase
 
-from configs import OpenAIConfigs
-from configs import GroqConfigs
-from configs import LangsmithConfigs
-from configs import PostgreConfigs
+from src.configs import OpenAIConfigs
+from src.configs import GroqConfigs
+from src.configs import LangsmithConfigs
+from src.configs import PostgreConfigs
 
 
 class LLMUtils:
