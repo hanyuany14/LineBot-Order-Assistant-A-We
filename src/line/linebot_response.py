@@ -47,21 +47,21 @@ from src.poc.chains import ChainsManager
 
 
 class LineBot:
-    def __init__(self, line_bot_chain: ChainsManager):
+    def __init__(self):
         self.line_bot_api = LineBotApi(LineBotConfigs.line_channel_access_token)
         self.handler = WebhookHandler(LineBotConfigs.line_channel_secret)
-        self.line_bot_chain = line_bot_chain
+        self.line_bot_chain = ChainsManager()
 
     def default_response(self, event_dict: MessageEvent) -> str:
         return "Hello, world!"
 
-    def checking_order_response(self, event_dict: MessageEvent) -> str:
+    def checking_stock_response(self, event_dict: MessageEvent) -> str:
 
         msg_type = event_dict.message.type
         msg_text = event_dict.message.text
 
         if msg_type == "text" and event_dict.message.emojis is None:
-            check_result = self.line_bot_chain.main(msg_text)
+            check_result = self.line_bot_chain.check_inventory_process(msg_text)
 
             match check_result:
                 case "Unknown product":
@@ -85,3 +85,6 @@ class LineBot:
             reply = "你傳的不是文字呦～"
 
         return reply
+
+    def chat_with_user_response(self, event_dict: MessageEvent) -> str:
+        return self.line_bot_chain.chat_with_user(event_dict.message.text)

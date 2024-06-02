@@ -34,23 +34,53 @@ class ChainsManager:
         self.covert_to_json_model = select_llm_model("gpt-3.5-turbo")
         self.check_sql_query_model = select_llm_model("gpt-3.5-turbo")
         self.check_inventory_model = select_llm_model("gpt-3.5-turbo")
+        self.chat_model = select_llm_model("gpt-3.5-turbo")
 
         self.json_data = {"product_name": None, "quantity": None}
 
-    def main(self, user_msg: str) -> str | None:
+    @property
+    def order_data(self) -> dict:
+        print(f"order_data: {self.json_data}")
+        return self.json_data
+
+    def check_inventory_process(self, user_msg: str) -> str | None:
         menu_list = self.get_current_menu()
         print(f"menu: {menu_list}")
 
-        self.json_data = self.convert_to_json_data(menu_list, user_msg)
+        self.json_data = self.__convert_to_json_data(menu_list, user_msg)
         print(f"json_data: {self.json_data}")
 
         if self.json_data is None:
             return "Unknown product"
 
-        query = self.get_checking_query(self.json_data)
+        query = self.__get_checking_query(self.json_data)
         if "sql_query" in query:
-            return self.check_inventory_status_in_db(query["sql_query"], self.json_data)
+            return self.__check_inventory_status_in_db(query["sql_query"], self.json_data)
         return None
+
+    def chat_with_user(self, user_msg: str) -> str:
+        """The chatbot will chat with the user and return the response."""
+
+        chat_prompt = """
+        You are a bot in a LINE chatroom. The user sent the message: {user_msg}
+
+        你的任務是判斷使用者的訊息並做出適當的回應。你可以在聊天中介紹店家和老闆的熱忱服務，回覆使用繁體中文。
+
+        我們的店家專賣各式茶葉和新鮮水果。店內的茶葉種類繁多，有高山茶、烏龍茶、紅茶等，每一款茶葉都是精挑細選，保證新鮮與品質。我們的水果也都是每日新鮮採摘，提供最健康、美味的選擇。
+
+        老闆對於每一位客人都非常熱忱，無論是第一次來訪的客人，還是老顧客，老闆總是親切地介紹產品，耐心地回答問題。希望每一位客人在這裡都能找到自己喜愛的產品，享受到最貼心的服務。
+
+        請根據使用者的訊息做出簡單的回應，大約30~50字以內即可，並且可以帶到上述店家介紹和老闆熱忱的資訊。
+        """
+
+        chat_prompt_template = PromptTemplate(
+            name="chat_prompt",
+            template=chat_prompt,
+            input_variables=["user_msg"],
+        )
+        chain = chat_prompt_template | self.chat_model | StrOutputParser()
+
+        return chain.invoke({"user_msg": user_msg})
 
     def get_current_menu(self) -> Any:
         menu = self.db.run_no_throw(
@@ -61,11 +91,6 @@ class ChainsManager:
             menu_list = menu_list[0][0]
 
         return menu_list
-
-    @property
-    def order_data(self) -> dict:
-        print(f"order_data: {self.json_data}")
-        return self.json_data
 
     def __check_unknown_product(self, d: dict | list) -> bool:
         if isinstance(d, dict):
@@ -84,7 +109,7 @@ class ChainsManager:
                         return True
         return False
 
-    def convert_to_json_data(
+    def __convert_to_json_data(
         self, menu_list: list, user_msg: str = "I want to order 2 apples."
     ) -> dict:
         """利用 LLM, 將用戶的消息轉換為json數據。"""
@@ -151,7 +176,7 @@ class ChainsManager:
 
         return response
 
-    def get_checking_query(self, json_data: dict) -> dict:
+    def __get_checking_query(self, json_data: dict) -> dict:
         """將 json 數據轉換為查詢字符串，查詢相關的訂單狀態"""
 
         _postgres_prompt = """
@@ -220,7 +245,7 @@ class ChainsManager:
 
         return response
 
-    def check_inventory_status_in_db(self, check_query: str, json_data: dict) -> str:
+    def __check_inventory_status_in_db(self, check_query: str, json_data: dict) -> str:
         """查詢查詢庫存的 SQL 語法，並回傳訂單是否可以成功訂購"""
 
         check_prompt = PromptTemplate.from_template(
@@ -252,7 +277,7 @@ class ChainsManager:
         chain = RunnablePassthrough.assign(result=itemgetter("query") | execute_query)
         sql_result = chain.invoke({"query": check_query})
         print(f"sql execution results: {sql_result}")
-        print(f"completed check_inventory_status_in_db: {check_result}")
+        print(f"completed __check_inventory_status_in_db: {check_result}")
 
         return check_result
 
