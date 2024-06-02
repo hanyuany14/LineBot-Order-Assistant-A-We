@@ -14,9 +14,8 @@ from linebot.models import (
     FileMessage,
 )
 from src.configs import LineBotConfigs
-from src.line.linebot import LineBot
-from src.poc.chains import ChainsManager
-
+from src.line.linebot_response import LineBot
+from src.poc.monitor_agent import MonitorAgent
 
 line_bot_api = LineBotApi(LineBotConfigs.line_channel_access_token)
 handler = WebhookHandler(LineBotConfigs.line_channel_secret)
@@ -45,11 +44,20 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
 
-    # todo: 加入一個 AI 可以自主監聽是不是有人要訂單，否則直接回傳掰掰
+    situation = MonitorAgent().judge(event)
+    print(f"situation: {situation}")
 
-    line_bot_chain = ChainsManager()
-    reply = LineBot(line_bot_chain).checking_order_response(event)
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
+    if situation == "order":
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text="阿偉正在幫您確認訂單中，等我一下ㄛ(cat smile)")
+        )
+
+        reply = LineBot().checking_stock_response(event)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
+
+    elif situation == "chat":
+        reply = LineBot().chat_with_user_response(event)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 
 @handler.add(
