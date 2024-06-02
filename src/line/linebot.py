@@ -25,26 +25,23 @@ from src.poc.chains import ChainsManager
 #     },
 # }
 
-# multi_emojis = {
-#     "type": "message",
-#     "mode": "active",
-#     "timestamp": 1717268436435,
-#     "source": {"type": "user", "userId": "U8c673b20a160a68f671d0cc94969ba55"},
-#     "webhook_event_id": "01HZAJSNYD4NY0K9RSDQJTB89N",
-#     "delivery_context": {"isRedelivery": false},
-#     "reply_token": "d7d7150caa3b4c8d8be2aacd28a49a63",
-#     "message": {
-#         "emojis": [
-#             {"emojiId": "025", "index": 0, "length": 7, "productId": "645314d6a377626a1179b30d"},
-#             {"emojiId": "025", "index": 7, "length": 7, "productId": "645314d6a377626a1179b30d"},
-#             {"emojiId": "025", "index": 14, "length": 7, "productId": "645314d6a377626a1179b30d"},
-#             {"emojiId": "025", "index": 21, "length": 7, "productId": "645314d6a377626a1179b30d"},
-#         ],
-#         "id": "510760752903356497",
-#         "text": "(emoji)(emoji)(emoji)(emoji)",
-#         "type": "text",
-#     },
-# }
+multi_emojis = {
+    "deliveryContext": {"isRedelivery": false},
+    "message": {
+        "emojis": [
+            {"emojiId": "206", "index": 0, "length": 7, "productId": "5ac1bfd5040ab15980c9b435"}
+        ],
+        "id": "510833175011000437",
+        "text": "(hijab)hjnnj",
+        "type": "text",
+    },
+    "mode": "active",
+    "replyToken": "1f5c1b1634df41ff9777d69aca0c6032",
+    "source": {"type": "user", "userId": "U8c673b20a160a68f671d0cc94969ba55"},
+    "timestamp": 1717311603550,
+    "type": "message",
+    "webhookEventId": "01HZBVZ1ATKWXFE5T08QC2QTS5",
+}
 
 
 class LineBot:
@@ -52,10 +49,10 @@ class LineBot:
         self.line_bot_api = LineBotApi(LineBotConfigs.line_channel_access_token)
         self.handler = WebhookHandler(LineBotConfigs.line_channel_secret)  # 確認 secret 是否正確
 
-    def bot_response(self, event_dict: MessageEvent) -> str:
+    def default_response(self, event_dict: MessageEvent) -> str:
         return "Hello, world!"
 
-    def linebot_response(self, event_dict: MessageEvent) -> str:
+    def checking_order_response(self, event_dict: MessageEvent) -> str:
 
         msg_type = event_dict.message.type
         msg_text = event_dict.message.text
