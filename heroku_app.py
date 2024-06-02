@@ -15,7 +15,7 @@ from linebot.models import (
 )
 from src.configs import LineBotConfigs
 from src.line.linebot_response import LineBot
-from src.poc.monitor_agent import MonitorAgent
+from src.llm_agents.monitor_agent import MonitorAgent
 
 line_bot_api = LineBotApi(LineBotConfigs.line_channel_access_token)
 handler = WebhookHandler(LineBotConfigs.line_channel_secret)
@@ -48,15 +48,12 @@ def handle_text_message(event):
     print(f"situation: {situation}")
 
     if situation == "order":
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text="阿偉正在幫您確認訂單中，等我一下ㄛ(cat smile)")
-        )
-
         reply = LineBot().checking_stock_response(event)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
     elif situation == "chat":
         reply = LineBot().chat_with_user_response(event)
+        print(f"reply: {reply}")
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 

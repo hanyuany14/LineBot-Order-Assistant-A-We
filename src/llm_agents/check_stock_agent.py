@@ -26,63 +26,43 @@ from langchain_core.runnables import RunnablePassthrough
 
 from src.utils import select_llm_model
 from src.utils import PostgreUtils
+from src.exceptions import ValidationError
 
 
-class ChainsManager:
+class CheckStockAgent:
     def __init__(self):
         self.db = PostgreUtils.PG_DB
+
         self.covert_to_json_model = select_llm_model("gpt-3.5-turbo")
         self.check_sql_query_model = select_llm_model("gpt-3.5-turbo")
         self.check_inventory_model = select_llm_model("gpt-3.5-turbo")
-        self.chat_model = select_llm_model("gpt-3.5-turbo")
 
         self.json_data = {"product_name": None, "quantity": None}
 
     @property
-    def order_data(self) -> dict:
+    def order_data(self) -> dict | None:
         print(f"order_data: {self.json_data}")
         return self.json_data
 
     def check_inventory_process(self, user_msg: str) -> str | None:
-        menu_list = self.get_current_menu()
+        menu_list = self.get_current_prodcts()
         print(f"menu: {menu_list}")
 
         self.json_data = self.__convert_to_json_data(menu_list, user_msg)
         print(f"json_data: {self.json_data}")
 
-        if self.json_data is None:
-            return "Unknown product"
+        try:
+            self.__json_data_checker(self.json_data)
+        except ValidationError as e:
+            return str(e)
 
         query = self.__get_checking_query(self.json_data)
         if "sql_query" in query:
             return self.__check_inventory_status_in_db(query["sql_query"], self.json_data)
+
         return None
 
-    def chat_with_user(self, user_msg: str) -> str:
-        """The chatbot will chat with the user and return the response."""
-
-        chat_prompt = """
-        You are a bot in a LINE chatroom. The user sent the message: {user_msg}
-
-        你的任務是判斷使用者的訊息並做出適當的回應。你可以在聊天中介紹店家和老闆的熱忱服務，回覆使用繁體中文。
-
-        我們的店家專賣各式茶葉和新鮮水果。店內的茶葉種類繁多，有高山茶、烏龍茶、紅茶等，每一款茶葉都是精挑細選，保證新鮮與品質。我們的水果也都是每日新鮮採摘，提供最健康、美味的選擇。
-
-        老闆對於每一位客人都非常熱忱，無論是第一次來訪的客人，還是老顧客，老闆總是親切地介紹產品，耐心地回答問題。希望每一位客人在這裡都能找到自己喜愛的產品，享受到最貼心的服務。
-
-        請根據使用者的訊息做出簡單的回應，大約30~50字以內即可，並且可以帶到上述店家介紹和老闆熱忱的資訊。
-        """
-
-        chat_prompt_template = PromptTemplate(
-            name="chat_prompt",
-            template=chat_prompt,
-            input_variables=["user_msg"],
-        )
-        chain = chat_prompt_template | self.chat_model | StrOutputParser()
-
-        return chain.invoke({"user_msg": user_msg})
-
-    def get_current_menu(self) -> Any:
+    def get_current_prodcts(self) -> Any:
         menu = self.db.run_no_throw(
             "SELECT array_agg(product_name) FROM product WHERE is_delete = false;"
         )
@@ -127,17 +107,19 @@ class ChainsManager:
 
         Here the infos you need:
         - The order message: {query}
-        - The current menu in the shop: {menu}
+        - The menu of the shop: {menu}
+
+        Return the result in the following JSON format:
+        {multiple_format_example}
 
         Here are the rules and format:
         - The order message can be in Chinese. If the product is in the current menu, translate it into English.
-        - The order message can contain more than one product, so you can have multiple `product_name` and `quantity` pairs in the JSON data. Use a list format to include all the `product_name` and `quantity` pairs.
         - Pay attention to check if any ordered product in the order message is not in the current menu, if so, put "Unknown product" into the 'quantity' field.
         - Only include the `product_name` and `quantity` keys in the JSON data, do not include any other keys or information.
 
         Few-shot example:
 
-        If the current menu is ["apple", "orange"]
+        If the menu is ["apple", "orange"]
 
         example1, "I want to order 2 apples and 10 oranges.", the JSON data should be:
         {few_shot_example}
@@ -158,6 +140,10 @@ class ChainsManager:
                 #     {"product_name": "apple", "quantity": 2},
                 #     {"product_name": "orange", "quantity": 10},
                 # ],
+                "multiple_format_example": {
+                    "product_name": ["item1", "item2"],
+                    "quantity": ["quantity1", "quantity2"],
+                },
                 "unknown_product_few_shot_example": {
                     "product_name": ["apple", "guava"],
                     "quantity": [2, "Unknown product"],
@@ -167,12 +153,8 @@ class ChainsManager:
         )
 
         # convert_to_json_prompt_template.pretty_print()
-
         chain = convert_to_json_prompt_template | self.covert_to_json_model | json_parser
         response = chain.invoke({"query": user_msg})
-
-        if "product_name" not in response or self.__check_unknown_product(response):
-            return {"product_name": None, "quantity": None}
 
         return response
 
@@ -281,10 +263,62 @@ class ChainsManager:
 
         return check_result
 
-    def insert_order_in_db(self, query: str) -> str:
-        """by LLM"""
-        ...
+    def __json_data_checker(self, json_data: dict):
+        """用於檢查 json_data 的合法性。"""
+        # 1. 檢查 dict 格式: dict, keys = ["product_name", "quantity"], values = [list, list]
+        if not isinstance(json_data, dict):
+            raise ValidationError("Invalid data format: json_data should be a dictionary.")
+        if "product_name" not in json_data or "quantity" not in json_data:
+            raise ValidationError(
+                'Missing keys: json_data should contain "product_name" and "quantity".'
+            )
+        if not isinstance(json_data["product_name"], list) or not isinstance(
+            json_data["quantity"], list
+        ):
+            raise ValidationError(
+                'Invalid data types: "product_name" and "quantity" should be lists.'
+            )
 
-    def update_items_in_db(self, query: str) -> str:
-        """by LLM"""
-        ...
+        product_names = json_data["product_name"]
+        quantities = json_data["quantity"]
+
+        if len(product_names) != len(quantities):
+            raise ValidationError(
+                'Mismatched lengths: "product_name" and "quantity" lists should have the same length.'
+            )
+
+        # 2. 檢查 product_name 是否不為 "Unknown product" 且存在於資料庫中
+        for name in product_names:
+            if name == "Unknown product":
+                raise ValidationError('Invalid product: "product_name" contains "Unknown product".')
+
+            result = self.db.run(
+                command=f"SELECT COUNT(*) FROM \"product\" WHERE product_name = '{name}' AND is_delete = false;"
+            )
+
+            result_list = ast.literal_eval(str(result))
+
+            if int(result_list[0][0]) == 0:
+                raise ValidationError(f'Invalid product: "{name}" does not exist in the database.')
+
+        # 3. 檢查 quantity 是否大於 0
+        for quantity in quantities:
+            if not isinstance(quantity, (int, float)) or quantity <= 0:
+                raise ValidationError("Invalid quantity: all quantities should be greater than 0.")
+
+        # 4. 檢查資料庫中是否有足夠的商品庫存
+        for name, quantity in zip(product_names, quantities):
+            stock_check_query = f"""
+                SELECT i.quantity
+                FROM inventory i
+                JOIN product p ON i.product_id = p.id
+                WHERE p.product_name = '{name}' AND i.is_delete = false
+            """
+            result = self.db.run(command=stock_check_query)
+            result_list = ast.literal_eval(str(result))
+            stock = result_list[0][0]
+
+            if stock is None or stock < quantity:
+                raise ValidationError(f'Insufficient stock: "{name}" does not have enough stock.')
+
+        return "Valid data."
