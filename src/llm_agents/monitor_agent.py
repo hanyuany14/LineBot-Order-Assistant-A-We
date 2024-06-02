@@ -30,9 +30,6 @@ from src.utils import PostgreUtils
 
 class MonitorAgent:
     def __init__(self):
-
-        # self.llm_model = select_llm_model()
-        # self.postgre_utils = PostgreUtils()
         self.situations_list = ["order", "chat", "none"]
         self.situation_judge_model = select_llm_model("gpt-3.5-turbo")
 
