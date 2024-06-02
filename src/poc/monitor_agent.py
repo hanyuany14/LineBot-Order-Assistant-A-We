@@ -28,9 +28,6 @@ from src.utils import select_llm_model
 from src.utils import PostgreUtils
 
 
-# TODO: a module to monitor or judge whether need to call order process
-
-
 class MonitorAgent:
     def __init__(self):
 
