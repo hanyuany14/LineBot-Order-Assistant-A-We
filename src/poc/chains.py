@@ -35,31 +35,37 @@ class ChainsManager:
         self.check_sql_query_model = select_llm_model("gpt-3.5-turbo")
         self.check_inventory_model = select_llm_model("gpt-3.5-turbo")
 
+        self.json_data = {"product_name": None, "quantity": None}
+
     def main(self, user_msg: str) -> str | None:
-        menu_list = self.__get_current_menu()
+        menu_list = self.get_current_menu()
         print(f"menu: {menu_list}")
 
-        json_data = self.convert_to_json_data(menu_list, user_msg)
-        print(f"json_data: {json_data}")
+        self.json_data = self.convert_to_json_data(menu_list, user_msg)
+        print(f"json_data: {self.json_data}")
 
-        if json_data is None:
+        if self.json_data is None:
             return "Unknown product"
 
-        query = self.get_checking_query(json_data)
+        query = self.get_checking_query(self.json_data)
         if "sql_query" in query:
-            return self.check_inventory_status_in_db(query["sql_query"], json_data)
+            return self.check_inventory_status_in_db(query["sql_query"], self.json_data)
         return None
 
-    def __get_current_menu(self) -> Any:
+    def get_current_menu(self) -> Any:
         menu = self.db.run_no_throw(
             "SELECT array_agg(product_name) FROM product WHERE is_delete = false;"
         )
-
         if type(menu) == str:
             menu_list = ast.literal_eval(menu)
             menu_list = menu_list[0][0]
 
         return menu_list
+
+    @property
+    def order_data(self) -> dict:
+        print(f"order_data: {self.json_data}")
+        return self.json_data
 
     def __check_unknown_product(self, d: dict | list) -> bool:
         if isinstance(d, dict):
@@ -80,7 +86,7 @@ class ChainsManager:
 
     def convert_to_json_data(
         self, menu_list: list, user_msg: str = "I want to order 2 apples."
-    ) -> dict | None:
+    ) -> dict:
         """利用 LLM, 將用戶的消息轉換為json數據。"""
 
         class Order(BaseModel):
@@ -135,14 +141,13 @@ class ChainsManager:
             },
         )
 
-        convert_to_json_prompt_template.pretty_print()
+        # convert_to_json_prompt_template.pretty_print()
 
         chain = convert_to_json_prompt_template | self.covert_to_json_model | json_parser
         response = chain.invoke({"query": user_msg})
-        print(f"response: {response}")
 
         if "product_name" not in response or self.__check_unknown_product(response):
-            return None
+            return {"product_name": None, "quantity": None}
 
         return response
 
@@ -202,15 +207,15 @@ class ChainsManager:
             }
         )
 
-        checking_query_prompt = checking_query_prompt_template.invoke(
-            {
-                "input": "Create a query to find the inventory quantity of the product mentioned in the order data."
-                + "\nSQLQuery:",
-                "table_info": self.db.get_table_info(table_names=["inventory"]),
-                "top_k": 10,
-            }
-        )
-        print(f"checking_query_prompt: \n{checking_query_prompt}\n")
+        # checking_query_prompt = checking_query_prompt_template.invoke(
+        #     {
+        #         "input": "Create a query to find the inventory quantity of the product mentioned in the order data."
+        #         + "\nSQLQuery:",
+        #         "table_info": self.db.get_table_info(table_names=["inventory"]),
+        #         "top_k": 10,
+        #     }
+        # )
+        # print(f"checking_query_prompt: \n{checking_query_prompt}\n")
         print(f"\nSQL query: {response}\n")
 
         return response
@@ -227,9 +232,9 @@ class ChainsManager:
             Answer: Based on the inventory data, determine if each product in the order can be fulfilled.
             For each product, check if the inventory quantity is greater than or equal to the ordered quantity.
             If all products can be fulfilled, just return "Success."
-            If any product cannot be fulfilled, just return "Not enough."
+            If any product cannot be fulfilled, just return "Not enough"
 
-            Don't give me any other information. Just return "Success" or "Not enough."
+            Don't give me any other information. Just return "Success" or "Not enough"
             """,
             partial_variables={"json_data": json_data},
         )
