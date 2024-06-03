@@ -44,8 +44,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
 
-    situation = MonitorAgent().judge(event)
-    print(f"situation: {situation}")
+    situation = MonitorAgent().judge(event.message.text)
+    print(f"店經理 Manager 判斷這是一個: '{situation}' 情境")
 
     if situation == "order":
         reply = LineBot().checking_stock_response(event)

@@ -10,7 +10,7 @@ def get_current_menu() -> dict:
     db = PostgreUtils.PG_DB
 
     query = """
-        SELECT p.product_name, p.price, i.quantity
+        SELECT p.product_name, p.price, i.inventory_quantity
         FROM product p
         JOIN inventory i ON p.id = i.product_id
         WHERE p.is_delete = false AND i.is_delete = false;
