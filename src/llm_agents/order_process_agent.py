@@ -42,10 +42,7 @@ class OrderProcessAgent:
         self.execute_query = QuerySQLDataBaseTool(db=self.db)
 
     def save_order(self, json_data: dict | None):
-        # try:
-        #     self.__rule_based_check_stock(json_data)
-        # except ValidationError as e:
-        #     return "The stock is insufficient. Please check the stock and try again."
+
         if json_data is not None:
             self.__insert_order_in_db(json_data)
             self.__update_inventory_in_db(json_data)
