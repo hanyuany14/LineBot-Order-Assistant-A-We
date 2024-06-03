@@ -7,3 +7,5 @@ __pycache__/
 
 # macOS specific files
 .DS_Store
+
+set_heroku_env.sh
