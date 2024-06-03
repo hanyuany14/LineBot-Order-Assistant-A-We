@@ -8,7 +8,7 @@
        "--line-length=100"
    ],
    "[python]": {
-       "editor.tabSize": 4,
+       "editor.tabSize": 2,
        "editor.defaultFormatter": "ms-python.black-formatter",
        "editor.formatOnType": true
    },

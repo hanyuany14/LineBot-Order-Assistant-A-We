@@ -12,8 +12,6 @@ user_info_map = {
 class UserInfoMapping:
     def __init__(self, user_id: str):
         self.user_id = user_id
-        print(f"user_id: {user_id}")
-        print(f"type(user_id): {type(user_id)}")
 
     def get_user_info(self):
         for _, user_info in user_info_map.items():

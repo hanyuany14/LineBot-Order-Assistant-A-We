@@ -8,46 +8,10 @@ from src.configs import LineBotConfigs
 from src.line.user_info import UserInfoMapping
 from src.line.response_template import get_order_success_reply
 
-# from src.llm_agents.chains import ChainsManager
 from src.llm_agents.check_stock_agent import CheckStockAgent
 from src.llm_agents.chat_agent import ChatAgent
+from src.llm_agents.order_process_agent import OrderProcessAgent
 from src.llm_agents.tools import get_current_menu
-
-# event_dict = {
-#     "type": "message",
-#     "mode": "active",
-#     "timestamp": 1717267790484,
-#     "source": {"type": "user", "userId": "U8c673b20a160a68f671d0cc94969ba55"},
-#     "webhook_event_id": "01HZAJ5Z4ENWDSG4GJKW30C18T",
-#     "delivery_context": {"isRedelivery": false},
-#     "reply_token": "f3605b2cdd73454798efec55c2cccd19",
-#     "message": {
-#         "emojis": [
-#             {"emojiId": "027", "index": 0, "length": 7, "productId": "645314d6a377626a1179b30d"}
-#         ],
-#         "id": "510759669179088945",
-#         "text": "(emoji)",
-#         "type": "text",
-#     },
-# }
-
-# multi_emojis = {
-#     "deliveryContext": {"isRedelivery": false},
-#     "message": {``
-#         "emojis": [
-#             {"emojiId": "206", "index": 0, "length": 7, "productId": "5ac1bfd5040ab15980c9b435"}
-#         ],
-#         "id": "510833175011000437",
-#         "text": "(hijab)hjnnj",
-#         "type": "text",
-#     },
-#     "mode": "active",
-#     "replyToken": "1f5c1b1634df41ff9777d69aca0c6032",
-#     "source": {"type": "user", "userId": "U8c673b20a160a68f671d0cc94969ba55"},
-#     "timestamp": 1717311603550,
-#     "type": "message",
-#     "webhookEventId": "01HZBVZ1ATKWXFE5T08QC2QTS5",
-# }
 
 
 class LineBot:
@@ -70,9 +34,15 @@ class LineBot:
             match check_result:
                 case "Not enough":
                     menu = get_current_menu()
-                    reply = "你訂購的商品數量超過我們現有的庫存，你可以訂購少一點。\n以下是我們店內現有的商品：\n{menu}"
+                    reply = f"你訂購的商品數量超過我們現有的庫存，你可以訂購少一點。\n以下是我們店內現有的商品：\n{menu}"
 
                 case "Success":
+                    # example_order_data = {"product_name": ["apple", "orange"], "quantity": [3, 4]}
+                    # order_process_result = OrderProcessAgent().save_order(example_order_data)
+
+                    order_process_result = OrderProcessAgent().save_order(check_agent.order_data)
+                    print(f"order_process_result: {order_process_result}")
+
                     user_info_mapper = UserInfoMapping(event_dict.source.user_id)
                     reply = get_order_success_reply(check_agent, user_info_mapper)
 

@@ -30,37 +30,118 @@ from src.utils import select_llm_model
 from src.utils import PostgreUtils
 from src.exceptions import ValidationError
 from src.llm_agents.tools import get_current_menu
+from src.llm_agents.prompts import Prompts
 
 
 class OrderProcessAgent:
     def __init__(self):
         self.db = PostgreUtils.PG_DB
+        self.insert_order_model = select_llm_model("gpt-4o")
+        self.update_inventory_order_model = select_llm_model("gpt-4o")
 
-    def save_order(self, json_data: dict):
-        self.__insert_order_in_db(json_data)
-        self.__update_inventory(json_data)
+        self.execute_query = QuerySQLDataBaseTool(db=self.db)
+
+    def save_order(self, json_data: dict | None):
+        # try:
+        #     self.__rule_based_check_stock(json_data)
+        # except ValidationError as e:
+        #     return "The stock is insufficient. Please check the stock and try again."
+        if json_data is not None:
+            self.__insert_order_in_db(json_data)
+            self.__update_inventory_in_db(json_data)
+            return "The order has been successfully placed."
+        return "The order is empty."
 
     def __insert_order_in_db(self, json_data: dict):
         """用於將訂單資料插入資料庫中。"""
 
-        order_info_json = json.dumps(json_data)
-        customer_id = 1
+        output_parser = StructuredOutputParser.from_response_schemas(
+            response_schemas=[
+                ResponseSchema(
+                    name="sql_query", description="SQL query to answer the user's instruction."
+                ),
+            ]
+        )
 
-        query = f"INSERT INTO \"order\" (order_info, customer_id) VALUES ('{order_info_json}'::jsonb, {customer_id})"
-        self.db.run(command=query)
+        insert_order_prompt_template = PromptTemplate(
+            input_variables=["input", "table_info"],
+            template=Prompts.OrderProcessAgentPrompt.insert_order_prompt,
+            partial_variables={
+                "json_data": json_data,
+                "format_instructions": output_parser.get_format_instructions(),
+                "customer_id": 1,
+            },
+            output_parser=output_parser,
+        )
 
-    def __update_inventory(self, json_data: dict):
+        chain = (
+            insert_order_prompt_template
+            | self.insert_order_model.bind(stop=["\nSQLResult:"])
+            | output_parser
+        )
+
+        insert_query = chain.invoke(
+            {
+                "input": "Create a query to insert the order data into the database."
+                + "\nSQLQuery:",
+                "table_info": self.db.get_table_info(table_names=["order"]),
+                "top_k": 10,
+            }
+        )
+        print(f"\n新增 order 數據 SQL query:\n{insert_query}\n")
+
+        if "sql_query" in insert_query:
+            chain = RunnablePassthrough.assign(result=itemgetter("query") | self.execute_query)
+            check_result = chain.invoke({"query": insert_query["sql_query"]})
+            print(f"\n新增 order 數據結果為: \n{check_result}\n")
+            return None
+
+        raise ValidationError(
+            "__insert_order_in_db error: The stock is insufficient. Please check the stock and try again."
+        )
+
+    def __update_inventory_in_db(self, json_data: dict):
         """根據 json_data 更新 inventory 表中的庫存。"""
 
-        product_names = json_data["product_name"]
-        quantities = json_data["quantity"]
+        output_parser = StructuredOutputParser.from_response_schemas(
+            response_schemas=[
+                ResponseSchema(
+                    name="sql_query", description="SQL query to answer the user's instruction."
+                ),
+            ]
+        )
 
-        for name, quantity in zip(product_names, quantities):
-            update_query = f"""
-                UPDATE "inventory"
-                SET quantity = quantity - {quantity}
-                WHERE product_id = (
-                    SELECT id FROM "product" WHERE product_name = '{name}'
-                ) AND is_delete = false
-            """
-            self.db.run(command=update_query)
+        update_inventory_prompt_template = PromptTemplate(
+            input_variables=["input", "table_info"],
+            template=Prompts.OrderProcessAgentPrompt.update_inventory_prompt,
+            partial_variables={
+                "json_data": json_data,
+                "format_instructions": output_parser.get_format_instructions(),
+            },
+            output_parser=output_parser,
+        )
+
+        chain = (
+            update_inventory_prompt_template
+            | self.update_inventory_order_model.bind(stop=["\nSQLResult:"])
+            | output_parser
+        )
+        update_query = chain.invoke(
+            {
+                "input": "Create queries to update the inventory quantity for each product in the order data."
+                + "\nSQLQuery:",
+                "table_info": self.db.get_table_info(table_names=["inventory"]),
+                "top_k": 10,
+            }
+        )
+        print(f"\n更新庫存 SQL query:\n{update_query}\n")
+
+        if "sql_query" in update_query:
+            chain = RunnablePassthrough.assign(result=itemgetter("query") | self.execute_query)
+            check_result = chain.invoke({"query": update_query["sql_query"]})
+            print(f"\n更新庫存: \n{check_result}\n")
+            return None
+
+        raise ValidationError(
+            "__update_inventory_in_db error: The stock is insufficient. Please check the stock and try again."
+        )
