@@ -38,6 +38,15 @@ class CheckStockAgent:
         return self.json_data
 
     def check_inventory_process(self, user_msg: str) -> str | None:
+        """the function is used to check the inventory status of the products mentioned in the user's message.
+
+        Args:
+            user_msg (str): 
+
+        Returns:
+            str | None: _description_
+        """
+        
         menu_list = self.get_current_prodcts()
         print(f"menu: {menu_list}")
 
