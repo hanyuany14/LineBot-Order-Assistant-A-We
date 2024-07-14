@@ -1,4 +1,5 @@
 from flask import Flask, request, abort
+import os
 import json
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -76,4 +77,5 @@ def handle_sticker_message(event):
 
 if __name__ == "__main__":
 
-    app.run()
+    port = int(os.environ.get("PORT", 5001))  # Heroku for PORT, but default to 5001 if local
+    app.run(host="0.0.0.0", port=port)

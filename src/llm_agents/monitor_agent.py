@@ -25,7 +25,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
 from src.utils import select_llm_model
-from src.utils import PostgreUtils
 from src.llm_agents.prompts import Prompts
 
 

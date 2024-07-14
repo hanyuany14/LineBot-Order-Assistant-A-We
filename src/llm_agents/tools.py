@@ -10,15 +10,16 @@ def get_current_menu() -> dict:
     db = PostgreUtils.PG_DB
 
     query = """
-        SELECT p.product_name, p.price, i.inventory_quantity
-        FROM product p
+        SELECT p.name AS product_name, p.price, i.quantity AS inventory_quantity
+        FROM products p
         JOIN inventory i ON p.id = i.product_id
         WHERE p.is_delete = false AND i.is_delete = false;
     """
     result = db.run(query)
-
     result_list = []
     if isinstance(result, str):
+        if result == "":
+            return {}
         try:
             result = re.sub(r"Decimal\('([\d\.]+)'\)", r"\1", result)
             result_list = ast.literal_eval(result)
