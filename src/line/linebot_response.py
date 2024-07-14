@@ -27,6 +27,7 @@ class LineBot:
         check_agent = CheckStockAgent()
         msg_type = event_dict.message.type
         msg_text = event_dict.message.text
+        print(f"event_dict: {event_dict}")
 
         if msg_type == "text" and event_dict.message.emojis is None:
             check_result = check_agent.check_inventory_process(msg_text)
