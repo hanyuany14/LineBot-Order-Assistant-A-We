@@ -31,18 +31,26 @@ class CheckStockAgent:
         self.check_sql_query_model = select_llm_model("gpt-3.5-turbo")
         self.check_inventory_model = select_llm_model("gpt-3.5-turbo")
 
-        self.json_data = {"product_name": None, "quantity": None}
+        self.json_data = {"product_name": None, "order_quantity": None}
 
     @property
     def order_data(self) -> dict | None:
         return self.json_data
 
     def check_inventory_process(self, user_msg: str) -> str | None:
+        """the function is used to check the inventory status of the products mentioned in the user's message.
+
+        Args:
+            user_msg (str):
+
+        Returns:
+            str | None: _description_
+        """
+
         menu_list = self.get_current_prodcts()
         print(f"menu: {menu_list}")
 
         self.json_data = self.__convert_to_json_data(menu_list, user_msg)
-        # self.json_data = {"product_name": ["apple", "orange"], "quantity": [3, 4]}
         print(f"結構化的的訂單 json: \n{self.json_data}")
 
         try:
@@ -57,9 +65,7 @@ class CheckStockAgent:
         return None
 
     def get_current_prodcts(self) -> Any:
-        menu = self.db.run_no_throw(
-            "SELECT array_agg(product_name) FROM product WHERE is_delete = false;"
-        )
+        menu = self.db.run_no_throw("SELECT array_agg(name) FROM products WHERE is_delete = false;")
         if type(menu) == str:
             menu_list = ast.literal_eval(menu)
             menu_list = menu_list[0][0]
@@ -75,7 +81,7 @@ class CheckStockAgent:
             product_name: list[str] = Field(
                 description="product name to be ordered. All product names are in lowercase and in singular form. For example, 'apple' instead of 'apples'. And it might be chinese or english."
             )
-            quantity: list[int] = Field(description="quantity of the item to be ordered")
+            order_quantity: list[int] = Field(description="quantity of the item to be ordered")
 
         json_parser = JsonOutputParser(pydantic_object=Order)
 
@@ -126,7 +132,7 @@ class CheckStockAgent:
             {
                 "input": "Create a query to find the inventory quantity of the product mentioned in the order data."
                 + "\nSQLQuery:",
-                "table_info": self.db.get_table_info(table_names=["inventory"]),
+                "table_info": self.db.get_table_info(table_names=["products", "inventory"]),
                 "top_k": 10,
             }
         )
@@ -155,6 +161,7 @@ class CheckStockAgent:
         execute_query = QuerySQLDataBaseTool(db=self.db)
 
         chain = RunnablePassthrough.assign(result=itemgetter("query") | execute_query)
+
         sql_result = chain.invoke({"query": check_query})
         print(f"SQL 查詢的原始結果為: {sql_result['result']}")
 
@@ -172,26 +179,26 @@ class CheckStockAgent:
 
     def __json_data_checker(self, json_data: dict):
         """用於檢查 json_data 的合法性。"""
-        # 1. 檢查 dict 格式: dict, keys = ["product_name", "quantity"], values = [list, list]
+        # 1. 檢查 dict 格式: dict, keys = ["product_name", "order_quantity"], values = [list, list]
         if not isinstance(json_data, dict):
             raise ValidationError("Invalid data format: json_data should be a dictionary.")
-        if "product_name" not in json_data or "quantity" not in json_data:
+        if "product_name" not in json_data or "order_quantity" not in json_data:
             raise ValidationError(
-                'Missing keys: json_data should contain "product_name" and "quantity".'
+                'Missing keys: json_data should contain "product_name" and "order_quantity".'
             )
         if not isinstance(json_data["product_name"], list) or not isinstance(
-            json_data["quantity"], list
+            json_data["order_quantity"], list
         ):
             raise ValidationError(
-                'Invalid data types: "product_name" and "quantity" should be lists.'
+                'Invalid data types: "product_name" and "order_quantity" should be lists.'
             )
 
         product_names = json_data["product_name"]
-        quantities = json_data["quantity"]
+        quantities = json_data["order_quantity"]
 
         if len(product_names) != len(quantities):
             raise ValidationError(
-                'Mismatched lengths: "product_name" and "quantity" lists should have the same length.'
+                'Mismatched lengths: "product_name" and "order_quantity" lists should have the same length.'
             )
 
         # 2. 檢查 product_name 是否不為 "Unknown product" 且存在於資料庫中
@@ -199,9 +206,11 @@ class CheckStockAgent:
             if name == "Unknown product":
                 raise ValidationError('Invalid product: "product_name" contains "Unknown product".')
 
-        # 3. 檢查 quantity 是否大於 0
-        for quantity in quantities:
-            if not isinstance(quantity, (int, float)) or quantity <= 0:
-                raise ValidationError("Invalid quantity: all quantities should be greater than 0.")
+        # 3. 檢查 order_quantity 是否大於 0
+        for order_quantity in quantities:
+            if not isinstance(order_quantity, (int, float)) or order_quantity <= 0:
+                raise ValidationError(
+                    "Invalid order_quantity: all quantities should be greater than 0."
+                )
 
         return "Valid data."

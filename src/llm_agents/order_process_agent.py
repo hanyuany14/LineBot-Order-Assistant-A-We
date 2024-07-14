@@ -81,7 +81,7 @@ class OrderProcessAgent:
             {
                 "input": "Create a query to insert the order data into the database."
                 + "\nSQLQuery:",
-                "table_info": self.db.get_table_info(table_names=["order"]),
+                "table_info": self.db.get_table_info(table_names=["orders"]),
                 "top_k": 10,
             }
         )

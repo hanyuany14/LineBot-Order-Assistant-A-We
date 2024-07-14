@@ -87,5 +87,5 @@ class PostgreUtils:
 
     PG_DB = SQLDatabase.from_uri(
         database_uri=PostgreConfigs.DB_ENGINE_CONNECT_STR,
-        include_tables=["inventory", "order"],
+        # include_tables=["inventory", "orders", ],
     )
