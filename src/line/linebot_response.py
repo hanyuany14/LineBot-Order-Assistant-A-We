@@ -37,9 +37,6 @@ class LineBot:
                     reply = f"你訂購的商品數量超過我們現有的庫存，你可以訂購少一點。\n以下是我們店內現有的商品：\n{menu}"
 
                 case "Success":
-                    # example_order_data = {"product_name": ["apple", "orange"], "quantity": [3, 4]}
-                    # order_process_result = OrderProcessAgent().save_order(example_order_data)
-
                     order_process_result = OrderProcessAgent().save_order(check_agent.order_data)
                     print(f"order_process_result: {order_process_result}")
 
