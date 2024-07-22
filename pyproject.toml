@@ -25,6 +25,7 @@ torch = "^2.3.0"
 torchvision = "^0.18.0"
 torchaudio = "^2.3.0"
 ffmpeg-python = "^0.2.0"
+langgraph = "^0.1.9"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

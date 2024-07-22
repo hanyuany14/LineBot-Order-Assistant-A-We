@@ -19,18 +19,6 @@ class UserInfoMapping:
                 return user_info
         return {}
 
-    # def get_user_name(self):
-    #     return self.get_user_info().get("name", "Unknown")
-
-    # def get_user_age(self):
-    #     return self.get_user_info().get("age", 18)
-
-    # def get_payment_method(self):
-    #     return self.get_user_info().get("payment_method", "貨到付款")
-
-    # def get_address(self):
-    #     return self.get_user_info().get("address", "來店取貨")
-
     def get_user_name(self):
         return self.get_user_info().get("name", "小苟")
 

@@ -1,3 +1,4 @@
+from typing import Any
 
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent
@@ -10,6 +11,7 @@ from src.llm_agents.check_stock_agent import CheckStockAgent
 from src.llm_agents.chat_agent import ChatAgent
 from src.llm_agents.order_process_agent import OrderProcessAgent
 from src.llm_agents.tools import get_current_menu
+from src.llm_agents.monitor_agent import MonitorAgent
 
 
 class LineBot:
@@ -20,7 +22,24 @@ class LineBot:
     def default_response(self) -> str:
         return "Hello, world!"
 
-    def checking_stock_response(self, event_dict: MessageEvent) -> str:
+    def linebot_response(self, event: Any) -> str:
+        situation = MonitorAgent().judge(event.message.text)
+        print(f"店經理 Manager 判斷這是一個: '{situation}' 情境")
+
+        if situation == "order":
+            reply = LineBot().__checking_stock_response(event)
+
+        elif situation == "chat":
+            reply = LineBot().__chat_with_user_response(event)
+
+        else:
+            reply = ""
+
+        print(f"reply: {reply}")
+
+        return reply
+
+    def __checking_stock_response(self, event_dict: MessageEvent) -> str:
 
         check_agent = CheckStockAgent()
         msg_type = event_dict.message.type
@@ -53,5 +72,5 @@ class LineBot:
 
         return reply
 
-    def chat_with_user_response(self, event_dict: MessageEvent) -> str:
+    def __chat_with_user_response(self, event_dict: MessageEvent) -> str:
         return ChatAgent().chat_with_user(event_dict.message.text)

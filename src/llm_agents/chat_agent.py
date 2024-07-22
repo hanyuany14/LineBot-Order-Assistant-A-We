@@ -1,7 +1,8 @@
-
 from langchain_core.prompts import PromptTemplate
 
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableSerializable
+
 
 from src.utils import select_llm_model
 from src.llm_agents.tools import get_current_menu
@@ -15,7 +16,9 @@ class ChatAgent:
 
     def chat_with_user(self, user_msg: str) -> str:
         """The chatbot will chat with the user and return the response."""
+        return self.make_chat_agent().invoke({"user_msg": user_msg})
 
+    def make_chat_agent(self) -> RunnableSerializable:
         chat_prompt_template = PromptTemplate(
             name="chat_prompt",
             template=Prompts.ChatAgentPrompt.chat_prompt,
@@ -25,7 +28,4 @@ class ChatAgent:
 
         chat_prompt_template.pretty_print()
 
-        chain = chat_prompt_template | self.chat_model | StrOutputParser()
-        response = chain.invoke({"user_msg": user_msg})
-
-        return response
+        return chat_prompt_template | self.chat_model | StrOutputParser()
