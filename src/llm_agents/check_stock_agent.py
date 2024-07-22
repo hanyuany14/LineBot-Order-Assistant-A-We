@@ -1,6 +1,3 @@
-import re
-import pandas as pd
-import json
 import ast
 from typing import Any
 
@@ -9,12 +6,9 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from operator import itemgetter
 from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
-from operator import itemgetter
-from langchain.chains.sql_database.prompt import PROMPT, SQL_PROMPTS
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
 from src.utils import select_llm_model
@@ -66,7 +60,7 @@ class CheckStockAgent:
 
     def get_current_prodcts(self) -> Any:
         menu = self.db.run_no_throw("SELECT array_agg(name) FROM products WHERE is_delete = false;")
-        if type(menu) == str:
+        if isinstance(menu, str):
             menu_list = ast.literal_eval(menu)
             menu_list = menu_list[0][0]
 

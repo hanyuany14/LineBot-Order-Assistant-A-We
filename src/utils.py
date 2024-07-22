@@ -1,15 +1,12 @@
-from typing import Any
 
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 from langchain_groq import ChatGroq
-from langsmith import Client
 from openai import OpenAI
 from langchain_community.utilities import SQLDatabase
 
 from src.configs import OpenAIConfigs
 from src.configs import GroqConfigs
-from src.configs import LangsmithConfigs
 from src.configs import PostgreConfigs
 
 

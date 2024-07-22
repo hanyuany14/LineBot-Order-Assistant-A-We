@@ -131,3 +131,57 @@ poetry run python heroku_app.py
 ```bash
 lsof -i :5001
 ```
+
+
+## 創建資料庫資料表語法
+
+```sql
+-- Step 1: 删除现有的表（如果存在）
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS inventory;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS customers;
+
+-- Step 2: 创建 customers 表
+CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_delete BOOLEAN DEFAULT FALSE
+);
+
+-- Step 3: 创建 products 表
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price NUMERIC(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_delete BOOLEAN DEFAULT FALSE
+);
+
+-- Step 4: 创建 inventory 表
+CREATE TABLE inventory (
+    id SERIAL PRIMARY KEY,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    warehouse_location VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_delete BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (product_id) REFERENCES products (id)
+);
+
+-- Step 5: 创建 orders 表
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    customer_id INT NOT NULL,
+    product_id INT NOT NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    quantity INT NOT NULL,
+    total_price NUMERIC(10, 2) NOT NULL,
+    is_delete BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (customer_id) REFERENCES customers (id),
+    FOREIGN KEY (product_id) REFERENCES products (id)
+);
+```

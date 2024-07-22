@@ -1,8 +1,6 @@
-import json
 
 from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent
 
 from src.configs import LineBotConfigs
 from src.line.user_info import UserInfoMapping
