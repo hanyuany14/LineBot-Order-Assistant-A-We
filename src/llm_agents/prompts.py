@@ -76,7 +76,6 @@ example6, "我要買3份橘子和一些蘋果", but the order_quantity of apple 
 
         postgres_prompt = """
 You are a PostgreSQL expert. Given an input order data, first create a syntactically correct PostgreSQL query to run.
-Ensure that the condition is_delete = False is included.
 When encountering a string containing single quotes in SQL queries, such as \'gidle\'s album\', use two single quotes to escape the single quote within the string to avoid syntax errors. For example, \'gidle\'\'s album\'.
 You can order the results to return the most informative data in the database.
 You have to Check all the products in the order data.
