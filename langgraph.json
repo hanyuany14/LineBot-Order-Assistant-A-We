@@ -1,0 +1,11 @@
+{
+  "python_version": "3.11",
+  "dependencies": [
+    "./requirements.txt",
+    "."
+  ],
+  "graphs": {
+    "my_line_bot": "./src/agent_langgraph/agent.py:app"
+  },
+  "env": "dotenv/.env.local"
+}

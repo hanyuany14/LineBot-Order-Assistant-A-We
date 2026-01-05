@@ -16,8 +16,12 @@ class OpenAIConfigs:
     OPENAI_GPT_4_TURBO_MODEL_NAME = "gpt-4-turbo"
     OPENAI_GPT_35_TURBO_MODEL_NAME = "gpt-3.5-turbo"
     OPENAI_GPT_4O_MODEL_NAME = "gpt-4o"
-    OPENAI_MAX_TOKENS = 2000
+
+    OPENAI_GPT_5_1_MINI_MODEL_NAME = "gpt-5-mini"
+
+    OPENAI_MAX_TOKENS = 5000
     OPENAI_TEMPERATURE = 0.1
+
 
 
 class QDrantConfigs:
@@ -65,14 +69,18 @@ class GroqConfigs:
 class PostgreConfigs:
     """The configuration for Postgre."""
 
-    DB_INFO = {
-        "HOST": os.environ.get("POSTGRES_HOST"),
-        "PORT": os.environ.get("POSTGRES_PORT"),
-        "NAME": os.environ.get("POSTGRES_DB"),
-        "USER": os.environ.get("POSTGRES_USER"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-    }
-    DB_ENGINE_CONNECT_STR = f"postgresql+psycopg2://{DB_INFO['USER']}:{urlquote(str(DB_INFO['PASSWORD']))}@{DB_INFO['HOST']}:{DB_INFO['PORT']}/{DB_INFO['NAME']}"
+    # DB_INFO = {
+    #     "HOST": os.environ.get("POSTGRES_HOST"),
+    #     "PORT": os.environ.get("POSTGRES_PORT"),
+    #     "NAME": os.environ.get("POSTGRES_DB"),
+    #     "USER": os.environ.get("POSTGRES_USER"),
+    #     "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+    # }
+    # DB_ENGINE_CONNECT_STR = f"postgresql+psycopg2://{DB_INFO['USER']}:{urlquote(str(DB_INFO['PASSWORD']))}@{DB_INFO['HOST']}:{DB_INFO['PORT']}/{DB_INFO['NAME']}"
+
+    # DB_URI = "postgresql://postgres.rctzefmdhuptrryaizqc:WXj6x39-ku8$y$y@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres"
+    # DB_URI = "postgresql://postgres.rctzefmdhuptrryaizqc:WXj6x39-ku8$y$y@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres"
+    DB_ENGINE_CONNECT_STR = f"""postgresql://postgres:{os.environ.get("SUPABASE_DATABASE_PASSWORD")}@db.rctzefmdhuptrryaizqc.supabase.co:5432/postgres"""
 
 
 class LineBotConfigs:

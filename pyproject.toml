@@ -4,18 +4,16 @@ version = "0.1.0"
 description = "\"Smart DocModifier is an AI-powered document editing tool designed to enhance and automate the process of modifying documents. It utilizes advanced AI algorithms, including capabilities from ChatGPT, to intelligently alter text, tables, and images within a specified range. This tool is especially useful for professionals and organizations looking to streamline document workflows. It supports direct export to Word format, enabling users to easily apply and further adjust the modifications. Smart DocModifier aims to simplify document management tasks, improve accuracy, and save time."
 authors = ["StephenYehFN <stephenyeh.futurenest@gmail.com>"]
 readme = "README.md"
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
-python = "3.11.8"
+python = "3.11.9"
 openai = "^1.30.5"
 python-dotenv = "^1.0.1"
-langchain-openai = "^0.1.8"
-langchain-groq = "^0.1.4"
 pandas = "^2.2.2"
 rich = "^13.7.1"
 pillow = "^10.3.0"
 matplotlib = "^3.9.0"
-langchain-community = "^0.2.1"
 psycopg2-binary = "^2.9.9"
 line-bot-sdk = "^3.11.0"
 flask = "^3.0.3"
@@ -25,6 +23,10 @@ torch = "^2.3.0"
 torchvision = "^0.18.0"
 torchaudio = "^2.3.0"
 ffmpeg-python = "^0.2.0"
+langgraph = "^1.0.5"
+langchain = "^1.2.0"
+langchain-openai = "^1.1.6"
+langchain-community = "^0.4.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
@@ -36,3 +38,8 @@ autopep8 = "^2.1.2"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "my_line_bot"
+version = "0.1.0"
+packages = ["src"]
